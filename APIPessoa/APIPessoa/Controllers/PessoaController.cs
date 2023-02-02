@@ -4,6 +4,8 @@ namespace APIPessoa.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     public class PessoaController : ControllerBase
     {
         public List<Pessoa> pessoas = new List<Pessoa>();
@@ -21,31 +23,60 @@ namespace APIPessoa.Controllers
             });
         }
 
-        [HttpGet]
-        public IEnumerable<Pessoa> Consultar()
+        //ActionResult informa conteudo do body da resposta (response),
+        //              utilizamos quando sabemos o conteudo de retorno;
+        //IActionResult não informa conteudo do body da resposta (response),
+        //              utilizamos quando não sabemos o conteudo exato
+        //Ambos são informados com StatusCode;
+        [HttpGet("todos")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<Pessoa>> Consultar()
         {
-            return pessoas;
+            return Ok(pessoas);
+        }
+
+        [HttpGet]
+        public ActionResult<Pessoa> ConsultarPessoa(string nome)
+        {
+            Pessoa pessoa = pessoas.FirstOrDefault(p => p.Nome == nome);
+            return Ok(pessoa);
         }
 
         [HttpPost]
-        public void Inserir(Pessoa pessoa)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public ActionResult<Pessoa> Inserir(Pessoa pessoa)
         {
             pessoas.Add(pessoa);
+            return CreatedAtAction(nameof(ConsultarPessoa), pessoa);
         }
 
         [HttpPut]
-        public IEnumerable<Pessoa> Alterar(int index, Pessoa pessoa)
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Pessoa>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Alterar(int index, Pessoa pessoa)
         {
+            if (index < 0 || index > 1)
+            {
+                return BadRequest();
+            }
+
             pessoas[index] = pessoa;
-            return pessoas;
+            return Ok(pessoas);
         }
 
         [HttpDelete]
-        public IEnumerable<Pessoa> Deletar(string nome)
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult Deletar(string nome)
         {
-            Pessoa pessoaDeletar = pessoas.FirstOrDefault(x => x.Nome == nome);
+            Pessoa pessoaDeletar = pessoas.FirstOrDefault(p => p.Nome == nome);
+            if (pessoaDeletar == null)
+            {
+                return BadRequest();
+            }
+
             pessoas.Remove(pessoaDeletar);
-            return pessoas;
+            return NoContent();
         }
     }
 }
