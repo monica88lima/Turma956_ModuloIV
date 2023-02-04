@@ -44,22 +44,28 @@ namespace APIPessoa.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult<Pessoa> Inserir(Pessoa pessoa)
+        public ActionResult<Pessoa> Inserir([FromBody] Pessoa pessoa)
         {
+            //if (!ModelState.IsValid)
+            //{
+            //    return BadRequest();
+            //}
+
             pessoas.Add(pessoa);
             return CreatedAtAction(nameof(ConsultarPessoa), pessoa);
         }
 
-        [HttpPut]
+        [HttpPut("consultar/{index}/pessoa")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Pessoa>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Alterar(int index, Pessoa pessoa)
+        public IActionResult Alterar([FromRoute] int index, [FromBody] Pessoa pessoa)
         {
             if (index < 0 || index > 1)
             {
                 return BadRequest();
             }
-
+            
+            Response.Headers.Add("rastreamento", "12345");
             pessoas[index] = pessoa;
             return Ok(pessoas);
         }
@@ -67,7 +73,7 @@ namespace APIPessoa.Controllers
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Deletar(string nome)
+        public IActionResult Deletar([FromQuery] string nome)
         {
             Pessoa pessoaDeletar = pessoas.FirstOrDefault(p => p.Nome == nome);
             if (pessoaDeletar == null)
@@ -77,6 +83,7 @@ namespace APIPessoa.Controllers
 
             pessoas.Remove(pessoaDeletar);
             return NoContent();
+            
         }
     }
 }
