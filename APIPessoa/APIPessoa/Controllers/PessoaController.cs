@@ -1,3 +1,4 @@
+using APIPessoa.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIPessoa.Controllers
@@ -32,7 +33,11 @@ namespace APIPessoa.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<Pessoa>> Consultar()
         {
-            return Ok(pessoas);
+            PessoaRepository repository = new();
+
+            List<Pessoa> pessoasBanco = repository.SelecionarPessoas();
+
+            return Ok(pessoasBanco);
         }
 
         [HttpGet]
