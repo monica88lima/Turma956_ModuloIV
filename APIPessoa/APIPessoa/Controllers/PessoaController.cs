@@ -9,19 +9,10 @@ namespace APIPessoa.Controllers
     [Produces("application/json")]
     public class PessoaController : ControllerBase
     {
-        public List<Pessoa> pessoas = new List<Pessoa>();
+        public PessoaRepository _repository { get; set; }
         public PessoaController()
         {
-            pessoas.Add(new Pessoa
-            {
-                Nome = "Amanda",
-                DataNascimento = new DateTime(1994, 05, 09)
-            });
-            pessoas.Add(new Pessoa
-            {
-                Nome = "Joaquim",
-                DataNascimento = new DateTime(1968, 09, 17)
-            });
+            _repository = new PessoaRepository();
         }
 
         //ActionResult informa conteudo do body da resposta (response),
@@ -33,18 +24,13 @@ namespace APIPessoa.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<Pessoa>> Consultar()
         {
-            PessoaRepository repository = new();
-
-            List<Pessoa> pessoasBanco = repository.SelecionarPessoas();
-
-            return Ok(pessoasBanco);
+            return Ok(_repository.SelecionarPessoas());
         }
 
         [HttpGet]
         public ActionResult<Pessoa> ConsultarPessoa(string nome)
         {
-            Pessoa pessoa = pessoas.FirstOrDefault(p => p.Nome == nome);
-            return Ok(pessoa);
+            return Ok(_repository.SelecionarPessoa(nome));
         }
 
         [HttpPost]
@@ -56,39 +42,38 @@ namespace APIPessoa.Controllers
             //    return BadRequest();
             //}
 
-            pessoas.Add(pessoa);
+            if (!_repository.InserirPessoa(pessoa))
+            {
+                return BadRequest();
+            }
+
             return CreatedAtAction(nameof(ConsultarPessoa), pessoa);
         }
 
         [HttpPut("consultar/{index}/pessoa")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Pessoa>))]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Alterar([FromRoute] int index, [FromBody] Pessoa pessoa)
         {
-            if (index < 0 || index > 1)
+            if (!_repository.AlterarPessoa(pessoa, index))
             {
                 return BadRequest();
             }
-            
-            Response.Headers.Add("rastreamento", "12345");
-            pessoas[index] = pessoa;
-            return Ok(pessoas);
+
+            return NoContent();
         }
 
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Deletar([FromQuery] string nome)
+        public IActionResult Deletar([FromQuery] int id)
         {
-            Pessoa pessoaDeletar = pessoas.FirstOrDefault(p => p.Nome == nome);
-            if (pessoaDeletar == null)
+            if (!_repository.DeletarPessoa(id))
             {
                 return BadRequest();
             }
 
-            pessoas.Remove(pessoaDeletar);
-            return NoContent();
-            
+            return NoContent();            
         }
     }
 }
