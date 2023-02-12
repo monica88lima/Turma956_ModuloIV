@@ -1,4 +1,5 @@
-using APIPessoa.Repository;
+using APIPessoa.Service.Dto;
+using APIPessoa.Service.Interface;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIPessoa.Controllers
@@ -9,10 +10,10 @@ namespace APIPessoa.Controllers
     [Produces("application/json")]
     public class PessoaController : ControllerBase
     {
-        public PessoaRepository _repository { get; set; }
-        public PessoaController()
+        public IPessoaService _pessoaService { get; set; }
+        public PessoaController(IPessoaService pessoaService)
         {
-            _repository = new PessoaRepository();
+            _pessoaService = pessoaService;
         }
 
         //ActionResult informa conteudo do body da resposta (response),
@@ -22,27 +23,27 @@ namespace APIPessoa.Controllers
         //Ambos são informados com StatusCode;
         [HttpGet("todos")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<Pessoa>> Consultar()
+        public async Task<ActionResult<IEnumerable<PessoaDto>>> Consultar()
         {
-            return Ok(_repository.SelecionarPessoas());
+            return Ok(await _pessoaService.SelecionarPessoas());
         }
 
         [HttpGet]
-        public ActionResult<Pessoa> ConsultarPessoa(string nome)
+        public async Task<ActionResult<PessoaDto>> ConsultarPessoa(string nome)
         {
-            return Ok(_repository.SelecionarPessoa(nome));
+            return Ok(await _pessoaService.SelecionarPessoa(nome));
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult<Pessoa> Inserir([FromBody] Pessoa pessoa)
+        public async Task<ActionResult<PessoaDto>> Inserir([FromBody] PessoaDto pessoa)
         {
             //if (!ModelState.IsValid)
             //{
             //    return BadRequest();
             //}
 
-            if (!_repository.InserirPessoa(pessoa))
+            if (!await _pessoaService.InserirPessoa(pessoa))
             {
                 return BadRequest();
             }
@@ -53,9 +54,9 @@ namespace APIPessoa.Controllers
         [HttpPut("consultar/{index}/pessoa")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Alterar([FromRoute] int index, [FromBody] Pessoa pessoa)
+        public async Task<IActionResult> Alterar([FromRoute] int index, [FromBody] PessoaDto pessoa)
         {
-            if (!_repository.AlterarPessoa(pessoa, index))
+            if (!await _pessoaService.AlterarPessoa(pessoa, index))
             {
                 return BadRequest();
             }
@@ -66,14 +67,15 @@ namespace APIPessoa.Controllers
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Deletar([FromQuery] int id)
+        public async Task<IActionResult> Deletar([FromQuery] int id)
         {
-            if (!_repository.DeletarPessoa(id))
+            if (!await _pessoaService.DeletarPessoa(id))
             {
                 return BadRequest();
             }
 
-            return NoContent();            
+            return NoContent();
         }
+
     }
 }

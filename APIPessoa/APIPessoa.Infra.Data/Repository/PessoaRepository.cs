@@ -1,23 +1,26 @@
-﻿using Dapper;
+﻿using APIPessoa.Service.Entity;
+using APIPessoa.Service.Interface;
+using Dapper;
 using MySqlConnector;
 
-namespace APIPessoa.Repository
+namespace APIPessoa.Infra.Data.Repository
 {
-    public class PessoaRepository
+    public class PessoaRepository : IPessoaRepository
     {
         private string _stringConnection { get; set; }
+
         public PessoaRepository()
         {
             _stringConnection = Environment.GetEnvironmentVariable("DATABASE_CONFIG");
         }
 
-        public List<Pessoa> SelecionarPessoas()
+        public async Task<List<PessoaEntity>> SelecionarPessoas()
         {
             string query = "SELECT * FROM Pessoa";
 
             using MySqlConnection conn = new(_stringConnection);
 
-            return conn.Query<Pessoa>(query).ToList();
+            return (await conn.QueryAsync<PessoaEntity>(query)).ToList();
         }
 
         //public List<Pessoa> SelecionarPessoa(string nome)
@@ -29,7 +32,7 @@ namespace APIPessoa.Repository
         //    return conn.Query<Pessoa>(query).ToList();
         //}
 
-        public List<Pessoa> SelecionarPessoa(string nome)
+        public async Task<PessoaEntity> SelecionarPessoa(string nome)
         {
             string query = $"SELECT * FROM Pessoa where nome = @nome";
 
@@ -38,10 +41,10 @@ namespace APIPessoa.Repository
 
             using MySqlConnection conn = new(_stringConnection);
 
-            return conn.Query<Pessoa>(query, param).ToList();
+            return await conn.QueryFirstOrDefaultAsync<PessoaEntity>(query, param);
         }
 
-        public bool InserirPessoa(Pessoa pessoa)
+        public async Task<bool> InserirPessoa(PessoaEntity pessoa)
         {
             string query = "INSERT INTO Pessoa (nome, dataNascimento, idade, quantidadeFilhos)" +
                 "VALUES (@nome, @dataNascimento, @idade, @quantidadeFilhos)";
@@ -55,12 +58,12 @@ namespace APIPessoa.Repository
 
             using MySqlConnection conn = new(_stringConnection);
 
-            int linhasAfetadas = conn.Execute(query, parametros);
+            int linhasAfetadas = await conn.ExecuteAsync(query, parametros);
 
             return linhasAfetadas > 0;
         }
 
-        public bool AlterarPessoa(Pessoa pessoa, int id)
+        public async Task<bool> AlterarPessoa(PessoaEntity pessoa, int id)
         {
             string query = "UPDATE Pessoa SET nome = @nome, dataNascimento = @dataNascimento, idade = @idade," +
                 "quantidadeFilhos = @quantidadeFilhos where id = @idPessoa";
@@ -85,12 +88,12 @@ namespace APIPessoa.Repository
 
             using MySqlConnection conn = new(_stringConnection);
 
-            int linhasAfetadas = conn.Execute(query, parametros);
+            int linhasAfetadas = await conn.ExecuteAsync(query, parametros);
 
             return linhasAfetadas > 0;
         }
 
-        public bool DeletarPessoa(int id)
+        public async Task<bool> DeletarPessoa(int id)
         {
             string query = "DELETE FROM Pessoa where id = @id";
 
@@ -98,7 +101,7 @@ namespace APIPessoa.Repository
 
             using MySqlConnection conn = new(_stringConnection);
 
-            int linhasAfetadas = conn.Execute(query, parametros);
+            int linhasAfetadas = await conn.ExecuteAsync(query, parametros);
 
             return linhasAfetadas > 0;
         } 

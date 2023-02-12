@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace APIPessoa
+namespace APIPessoa.Service.Dto
 {
-    public class Pessoa
+    public class PessoaDto
     {
         [Required(AllowEmptyStrings = false, ErrorMessage = "Nome é obrigatório!")]
         [MaxLength(255)]
@@ -12,6 +12,7 @@ namespace APIPessoa
         [Range(0, 20)]
         public int QuantidadeFilhos { get; set; }
         public int Idade => DateTime.Now.AddYears(-DataNascimento.Year).Year;
+        public string Permissao { get; set; }
 
     }
 }
