@@ -19,8 +19,14 @@ namespace APIPessoa.Infra.Data.Repository
             string query = "SELECT * FROM Pessoa";
 
             using MySqlConnection conn = new(_stringConnection);
-
-            return (await conn.QueryAsync<PessoaEntity>(query)).ToList();
+            try
+            {
+                return (await conn.QueryAsync<PessoaEntity>(query)).ToList();
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         //public List<Pessoa> SelecionarPessoa(string nome)

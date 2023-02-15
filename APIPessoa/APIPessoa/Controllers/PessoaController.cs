@@ -1,3 +1,4 @@
+using APIPessoa.Filter;
 using APIPessoa.Service.Dto;
 using APIPessoa.Service.Interface;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +12,11 @@ namespace APIPessoa.Controllers
     public class PessoaController : ControllerBase
     {
         public IPessoaService _pessoaService { get; set; }
-        public PessoaController(IPessoaService pessoaService)
+        public IGerarTokenService _tokenService { get; set; }
+        public PessoaController(IPessoaService pessoaService, IGerarTokenService tokenService)
         {
             _pessoaService = pessoaService;
+            _tokenService = tokenService;
         }
 
         //ActionResult informa conteudo do body da resposta (response),
@@ -23,9 +26,16 @@ namespace APIPessoa.Controllers
         //Ambos são informados com StatusCode;
         [HttpGet("todos")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [TypeFilter(typeof(ExcecaoGeralFilter))]
         public async Task<ActionResult<IEnumerable<PessoaDto>>> Consultar()
         {
-            return Ok(await _pessoaService.SelecionarPessoas());
+            List<PessoaDto> pessoas = await _pessoaService.SelecionarPessoas();
+            if (pessoas == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(pessoas);
         }
 
         [HttpGet]
@@ -75,6 +85,19 @@ namespace APIPessoa.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("Token")]
+        public async Task<ActionResult<string>> GeraToken(string nome)
+        {
+            PessoaDto pessoa = await _pessoaService.SelecionarPessoa(nome);
+            if (pessoa == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_tokenService.GerarTokenPessoa(pessoa.Nome, pessoa.Permissao));
+
         }
 
     }

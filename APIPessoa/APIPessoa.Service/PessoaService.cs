@@ -24,6 +24,11 @@ namespace APIPessoa.Service
         public async Task<List<PessoaDto>> SelecionarPessoas()
         {
             List<PessoaEntity> entity = await _repository.SelecionarPessoas();
+            if (entity == null)
+            {
+                return null;
+            }
+
             List<PessoaDto> pessoas = _mapper.Map<List<PessoaDto>>(entity);
             return pessoas;
         }

@@ -1,4 +1,4 @@
-using APIPessoa.Infra.Data;
+using APIPessoa.Filter;
 using APIPessoa.Infra.Data.Repository;
 using APIPessoa.Service;
 using APIPessoa.Service.Dto;
@@ -16,12 +16,18 @@ builder.Services.AddControllers();
 //    options.SuppressModelStateInvalidFilter = true;
 //});
 
+builder.Services.AddMvc(options =>
+{
+    options.Filters.Add(typeof(ExcecaoGeralFilter));
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IPessoaRepository, PessoaRepository>();
 builder.Services.AddScoped<IPessoaService, PessoaService>();
+builder.Services.AddScoped<IGerarTokenService, GerarTokenService>();
 
 MapperConfiguration mapperConfig = new(mc =>
 {
