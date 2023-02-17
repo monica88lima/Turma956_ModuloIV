@@ -13,5 +13,11 @@ namespace APIPessoa
         public int QuantidadeFilhos { get; set; }
         public int Idade => DateTime.Now.AddYears(-DataNascimento.Year).Year;
 
+        //public Pessoa(string nome, DateTime dataNascimento, int quantidadeFilhos)
+        //{
+        //    Nome = nome;
+        //    DataNascimento = dataNascimento;
+        //    QuantidadeFilhos = quantidadeFilhos;
+        //}
     }
 }

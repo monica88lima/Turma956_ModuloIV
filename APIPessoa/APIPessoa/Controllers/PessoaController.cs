@@ -43,20 +43,25 @@ namespace APIPessoa.Controllers
         [HttpGet]
         public ActionResult<Pessoa> ConsultarPessoa(string nome)
         {
-            Pessoa pessoa = pessoas.FirstOrDefault(p => p.Nome == nome);
-            return Ok(pessoa);
+            PessoaRepository repository = new();
+
+            Pessoa pessoaBanco = repository.SelecionarPessoa(nome);
+
+            return Ok(pessoaBanco);
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public ActionResult<Pessoa> Inserir([FromBody] Pessoa pessoa)
         {
+            PessoaRepository repository = new();
+
+            repository.InserirPessoa(pessoa);
             //if (!ModelState.IsValid)
             //{
             //    return BadRequest();
             //}
 
-            pessoas.Add(pessoa);
             return CreatedAtAction(nameof(ConsultarPessoa), pessoa);
         }
 
@@ -65,30 +70,29 @@ namespace APIPessoa.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Alterar([FromRoute] int index, [FromBody] Pessoa pessoa)
         {
-            if (index < 0 || index > 1)
+            PessoaRepository repository = new();
+
+            if (index < 0)
             {
                 return BadRequest();
             }
-            
+
             Response.Headers.Add("rastreamento", "12345");
-            pessoas[index] = pessoa;
-            return Ok(pessoas);
+            repository.AlterarPessoa(pessoa, index);
+            return Ok();
         }
 
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Deletar([FromQuery] string nome)
+        public IActionResult Deletar(int index, Pessoa pessoa)
         {
-            Pessoa pessoaDeletar = pessoas.FirstOrDefault(p => p.Nome == nome);
-            if (pessoaDeletar == null)
-            {
-                return BadRequest();
-            }
+            PessoaRepository repository = new();
 
-            pessoas.Remove(pessoaDeletar);
+            repository.DeletarPessoa(pessoa, index);
+           
             return NoContent();
-            
+
         }
     }
 }
